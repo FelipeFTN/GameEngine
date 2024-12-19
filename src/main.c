@@ -1,6 +1,7 @@
 #include <SDL2/SDL_video.h>
-#include <stdio.h>
 #include <stdbool.h>
+
+#include "engine/global.h"
 
 #include "../include/glad/glad.h"
 
@@ -8,33 +9,7 @@
 #include <SDL2/SDL.h>
 
 int main() {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
-
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Window* window = SDL_CreateWindow(
-        "OpenGL",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        800,
-        600,
-        SDL_WINDOW_OPENGL
-    );
-    if (window == NULL) {
-        fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_GL_CreateContext(window);
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
-        fprintf(stderr, "gladLoadGLLoader failed\n");
-        return 1;
-    }
+    render_init();
 
     bool running = true;
     while (running) {
@@ -45,10 +20,15 @@ int main() {
             }
         }
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        render_begin();
 
-        SDL_GL_SwapWindow(window);
+        render_quad(
+            (vec2){global.render.width * 0.5, global.render.height * 0.5},
+            (vec2){50, 50},
+            (vec4){1.0f, 1.0f, 1.0f, 1.0f}
+        );
+
+        render_end();
     }
 
     return 0;
