@@ -101,3 +101,27 @@ void render_init_quad(u32 *vao, u32 *vbo, u32 *ebo) {
 
     glBindVertexArray(0);
 }
+
+void render_init_line(u32 *vao, u32 *vbo) {
+    // 1. Generate a vertex array object
+    // 2. Bind the vertex array object
+    glGenVertexArrays(1, vao);
+    glBindVertexArray(*vao);
+
+    // 1. Generate a buffer object
+    // 2. Bind the buffer object to the GL_ARRAY_BUFFER target
+    // 3. Allocate memory for the buffer object
+    glGenBuffers(1, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+    glBufferData(GL_ARRAY_BUFFER, 2 * 3 * sizeof(f32), NULL, GL_DYNAMIC_DRAW);
+
+    // 1. Enable the vertex attribute array
+    // 2. Specify the location and data format of the array
+    // 3. Unbind the buffer object
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void *)0);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Unbind the vertex array object
+    glBindVertexArray(0);
+}

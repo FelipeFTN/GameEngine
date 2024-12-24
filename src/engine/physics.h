@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../include/linmath.h"
+#include "stdbool.h"
 #include "types.h"
 
 typedef struct aabb {
@@ -18,3 +19,4 @@ void physics_init(void);
 void physics_update(void);
 usize physics_body_create(vec2 position, vec2 size);
 Body *physics_body_get(usize index);
+bool physics_point_intersect_aabb(vec2 point, AABB aabb);
