@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "../include/glad/glad.h"
 
@@ -18,14 +19,6 @@ static bool should_quit = false;
 static vec2 pos = {0.f, 0.f};
 
 static void input_handle(void) {
-    // if (global.input.left == KS_PRESSED || global.input.left == KS_HELD)
-    //     pos[0] -= 500 * global.time.delta;
-    // if (global.input.right == KS_PRESSED || global.input.right == KS_HELD)
-    //     pos[0] += 500 * global.time.delta;
-    // if (global.input.up == KS_PRESSED || global.input.up == KS_HELD)
-    //     pos[1] += 500 * global.time.delta;
-    // if (global.input.down == KS_PRESSED || global.input.down == KS_HELD)
-    //     pos[1] -= 500 * global.time.delta;
     if (global.input.escape == KS_PRESSED || global.input.escape == KS_HELD)
         should_quit = true;
 
@@ -92,37 +85,62 @@ int main(int argc, char *argv[]) {
 
         render_aabb((f32*)&test_aabb, WHITE);
 
-        render_aabb((f32*)&sum_aabb, (vec4){1, 1, 1, 0.5});
-
-        render_aabb((f32*)&cursor_aabb, WHITE);
-
-        AABB minkowski_diff = aabb_minkowski_difference(test_aabb, cursor_aabb);
-        render_aabb((f32*)&minkowski_diff, ORANGE);
-
-        vec2 pv;
-        aabb_penetration_vector(pv, minkowski_diff);
-
-        AABB collision_aabb = cursor_aabb;
-        collision_aabb.position[0] += pv[0];
-        collision_aabb.position[1] += pv[1];
-
         if (physics_aabb_intersect_aabb(test_aabb, cursor_aabb)) {
             render_aabb((f32*)&cursor_aabb, RED);
-            render_aabb((f32*)&collision_aabb, CYAN);
-
-            vec2_add(pv, pos, pv);
-            render_line_segment(pos, pv, CYAN);
         } else {
             render_aabb((f32*)&cursor_aabb, WHITE);
         }
 
-        render_aabb((f32*)&start_aabb, (vec4){1, 1, 1, 0.5});
-        render_line_segment(start_aabb.position, pos, WHITE);
-        
-        if (physics_point_intersect_aabb(pos, test_aabb)) {
-            render_quad(pos, (vec2){5, 5}, RED);
-        } else {
-            render_quad(pos, (vec2){5, 5}, WHITE);
+        vec4 faded = {1, 1, 1, 0.3};
+
+        render_aabb((f32*)&start_aabb, faded);
+        render_line_segment(start_aabb.position, pos, faded);
+
+        f32 x = sum_aabb.position[0];
+        f32 y = sum_aabb.position[1];
+        f32 size = sum_aabb.half_size[0];
+
+        render_line_segment((vec2){x - size, 0}, (vec2){x - size, global.render.height}, faded);
+        render_line_segment((vec2){x + size, 0}, (vec2){x + size, global.render.height}, faded);
+        render_line_segment((vec2){0, y - size}, (vec2){global.render.width, y - size}, faded);
+        render_line_segment((vec2){0, y + size}, (vec2){global.render.width, y + size}, faded);
+
+        vec2 min, max;
+        aabb_min_max(min, max, sum_aabb);
+
+        vec2 magnitude;
+        vec2_sub(magnitude, pos, start_aabb.position);
+        Hit hit = ray_intersect_aabb(start_aabb.position, magnitude, sum_aabb);
+
+        if (hit.is_hit) {
+            AABB hit_aabb = {
+                .position = {hit.position[0], hit.position[1]},
+                .half_size = {start_aabb.half_size[0], start_aabb.half_size[1]}
+            };
+            render_aabb((f32*)&hit_aabb, CYAN);
+            render_quad(hit.position, (vec2){5, 5}, CYAN);
+        }
+
+        for (u8 i = 0; i < 2; i++) {
+            if (magnitude[i] != 0) {
+                f32 t1 = (min[i] - pos[i]) / magnitude[i];
+                f32 t2 = (max[i] - pos[i]) / magnitude[i];
+
+                vec2 point;
+                vec2_scale(point, magnitude, t1);
+                vec2_add(point, point, pos);
+                if (min[i] < start_aabb.position[i])
+                    render_quad(point, ((vec2){5, 5}), ORANGE);
+                else
+                    render_quad(point, ((vec2){5, 5}), CYAN);
+
+                vec2_scale(point, magnitude, t2);
+                vec2_add(point, point, pos);
+                if (max[i] < start_aabb.position[i])
+                    render_quad(point, ((vec2){5, 5}), CYAN);
+                else
+                    render_quad(point, ((vec2){5, 5}), ORANGE);
+            }
         }
 
         render_end();

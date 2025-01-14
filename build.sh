@@ -19,7 +19,7 @@ OUTPUT="$BUILD_DIR/Game"
 # Compiler and Flags
 CXX_LINUX="gcc"
 CXX_WINDOWS="x86_64-w64-mingw32-gcc"
-CXXFLAGS="-I$INCLUDE_DIR -Wall -O2"
+CXXFLAGS="-I$INCLUDE_DIR -Wall -O2 -lm"
 LDFLAGS_WINDOWS="-L$LIB_DIR -lSDL2 -mwindows"
 LDFLAGS_LINUX="-lSDL2"
 
